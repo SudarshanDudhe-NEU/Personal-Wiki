@@ -1,0 +1,5 @@
+# .gitignore example
+.DS_Store
+.vscode/
+*.log
+temp/
