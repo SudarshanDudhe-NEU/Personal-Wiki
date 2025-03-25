@@ -3,3 +3,7 @@
 .vscode/
 *.log
 temp/
+
+venv/
+__pycache__/
+*.pyc
