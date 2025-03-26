@@ -1,75 +1,9 @@
-import streamlit as st
 import os
-import markdown
 import glob
-from bs4 import BeautifulSoup
 import re
+import markdown
 import base64
-
-
-# Custom CSS to make the wiki look nicer
-def local_css():
-    st.markdown(
-        """
-    <style>
-        .main {
-            padding: 0rem 1rem;
-        }
-        .stMarkdown h1 {
-            padding-bottom: 0.5rem;
-            border-bottom: 2px solid #f0f2f6;
-        }
-        .stMarkdown h2 {
-            padding-bottom: 0.3rem;
-            border-bottom: 1px solid #f0f2f6;
-            margin-top: 1.5rem;
-        }
-        .stMarkdown pre {
-            border-radius: 5px;
-        }
-        .stMarkdown img {
-            max-width: 100%;
-            height: auto;
-        }
-        .stMarkdown table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        .stMarkdown th, .stMarkdown td {
-            border: 1px solid #f0f2f6;
-            padding: 8px;
-            text-align: left;
-        }
-        .stMarkdown tr:nth-child(even) {
-            background-color: #f0f2f6;
-        }
-        .stTabs [data-baseweb="tab-list"] {
-            gap: 8px;
-        }
-        .stTabs [data-baseweb="tab"] {
-            height: auto;
-            white-space: pre-wrap;
-            background-color: #f0f2f6;
-            border-radius: 4px;
-            padding: 0.5rem 1rem;
-        }
-        .stTabs [aria-selected="true"] {
-            background-color: #e0e2e6 !important;
-            border-bottom: 3px solid #0068c9 !important;
-        }
-        .sidebar-category {
-            margin-left: 10px;
-        }
-        .sidebar-file {
-            margin-left: 20px;
-        }
-        .sidebar-subcategory {
-            margin-left: 30px;
-        }
-    </style>
-    """,
-        unsafe_allow_html=True,
-    )
+from bs4 import BeautifulSoup
 
 
 # Parse markdown to HTML with extended features
@@ -90,58 +24,88 @@ def md_to_html(md_content):
 def get_md_files():
     md_files = {}
 
-    # Main categories
-    categories = [f for f in glob.glob("categories/*.md") if not "index.md" in f]
+    # Get and process main categories
+    categories = get_main_categories()
 
     for category in categories:
         category_name = os.path.basename(category).replace(".md", "")
-        md_files[category_name] = {}
-        md_files[category_name]["path"] = category
-        md_files[category_name]["files"] = {}
+        md_files[category_name] = {
+            "path": category,
+            "files": get_category_files(category_name),
+        }
 
-        # Get sub-files in this category
-        category_dir = os.path.join("categories", category_name)
-        if os.path.isdir(category_dir):
-            subfiles = glob.glob(f"{category_dir}/*.md")
-            for subfile in subfiles:
-                file_name = os.path.basename(subfile).replace(".md", "")
-                md_files[category_name]["files"][file_name] = subfile
-
-            # Check for subcategories
-            subcategories = [
-                d
-                for d in os.listdir(category_dir)
-                if os.path.isdir(os.path.join(category_dir, d))
-            ]
-
-            md_files[category_name]["subcategories"] = {}
-
-            for subcategory in subcategories:
-                md_files[category_name]["subcategories"][subcategory] = {}
-                subcategory_path = os.path.join(category_dir, subcategory)
-
-                # Get the index file for the subcategory
-                index_file = os.path.join(subcategory_path, "index.md")
-                if os.path.exists(index_file):
-                    md_files[category_name]["subcategories"][subcategory][
-                        "index"
-                    ] = index_file
-
-                # Get files in the subcategory
-                subcat_files = [
-                    f
-                    for f in glob.glob(f"{subcategory_path}/*.md")
-                    if not "index.md" in f
-                ]
-                md_files[category_name]["subcategories"][subcategory]["files"] = {}
-
-                for subcat_file in subcat_files:
-                    file_name = os.path.basename(subcat_file).replace(".md", "")
-                    md_files[category_name]["subcategories"][subcategory]["files"][
-                        file_name
-                    ] = subcat_file
+        # Process subcategories
+        subcategories = get_subcategories(category_name)
+        md_files[category_name]["subcategories"] = process_subcategories(
+            category_name, subcategories
+        )
 
     return md_files
+
+
+def get_main_categories():
+    """Get all main category markdown files"""
+    return [f for f in glob.glob("categories/*.md") if not "index.md" in f]
+
+
+def get_category_files(category_name):
+    """Get all files directly in a category"""
+    files = {}
+    category_dir = os.path.join("categories", category_name)
+
+    if os.path.isdir(category_dir):
+        subfiles = glob.glob(f"{category_dir}/*.md")
+        for subfile in subfiles:
+            file_name = os.path.basename(subfile).replace(".md", "")
+            files[file_name] = subfile
+
+    return files
+
+
+def get_subcategories(category_name):
+    """Get all subcategories in a category"""
+    category_dir = os.path.join("categories", category_name)
+    if os.path.isdir(category_dir):
+        return [
+            d
+            for d in os.listdir(category_dir)
+            if os.path.isdir(os.path.join(category_dir, d))
+        ]
+    return []
+
+
+def process_subcategories(category_name, subcategories):
+    """Process all subcategories and their files"""
+    result = {}
+
+    for subcategory in subcategories:
+        result[subcategory] = {}
+        subcategory_path = os.path.join("categories", category_name, subcategory)
+
+        # Get the index file for the subcategory
+        index_file = os.path.join(subcategory_path, "index.md")
+        if os.path.exists(index_file):
+            result[subcategory]["index"] = index_file
+
+        # Get files in the subcategory
+        result[subcategory]["files"] = get_subcategory_files(subcategory_path)
+
+    return result
+
+
+def get_subcategory_files(subcategory_path):
+    """Get all files in a subcategory"""
+    files = {}
+
+    subcat_files = [
+        f for f in glob.glob(f"{subcategory_path}/*.md") if not "index.md" in f
+    ]
+
+    for subcat_file in subcat_files:
+        file_name = os.path.basename(subcat_file).replace(".md", "")
+        files[file_name] = subcat_file
+
+    return files
 
 
 # Extract title from markdown content
@@ -186,3 +150,14 @@ def process_links(html_content, current_file):
             link["href"] = f"?file={target_path}"
             link["target"] = "_self"  # Ensure the link stays within the app
     return str(soup)
+
+def get_category_from_path(file_path):
+    """Extract category name from file path"""
+    if not file_path or file_path == "index.md":
+        return ""
+
+    parts = file_path.split(os.sep)
+    if len(parts) > 1 and parts[0] == "categories":
+        if len(parts) > 2:
+            return parts[1]  # Return the category name
+    return ""
