@@ -6,6 +6,14 @@ My knowledge base for organizing information, notes, and references.
 
 - `index.md` - Main entry point and table of contents
 - `categories/` - Topic-specific content organized by category
+  - `technology/` - Technology-related articles
+    - `programming-languages/` - Programming languages subfolder
+    - `devops/` - DevOps topics subfolder
+    - `ai-ml/` - AI and Machine Learning subfolder
+    - `web-development/` - Web development subfolder
+  - `books/` - Book summaries and reviews
+  - `projects/` - Project documentation
+  - `notes/` - General notes and research
 
 ## How to Use
 
@@ -41,6 +49,18 @@ You can add new wiki pages using the provided script for consistency.
    git commit -m "Add wiki page on Docker Basics"
    git push
    ```
+
+### Using the Script with Subcategories
+
+The script supports both main categories and subcategories:
+
+```bash
+# Adding to a main category
+./add_wiki.sh technology docker-basics
+
+# Adding to a subcategory
+./add_wiki.sh technology/ai-ml chatgpt-prompts
+```
 
 #### Supported Categories
 
@@ -156,3 +176,29 @@ git add .
 git commit -m "Your descriptive message"
 git push
 ```
+
+## Visualizing Your Wiki with Streamlit
+
+This wiki includes a Streamlit application for a beautiful, interactive visualization of your content.
+
+### Setup
+
+1. Install the required dependencies:
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+2. Run the Streamlit application:
+   ```bash
+   streamlit run wiki_viewer.py
+   ```
+
+3. The application will open in your browser at `http://localhost:8501`
+
+### Features
+
+- **Interactive Navigation**: Browse through categories and files using the sidebar
+- **Beautiful Rendering**: Clean, styled display of your Markdown content
+- **Source View**: Toggle between rendered view and source markdown
+- **Breadcrumb Navigation**: See your current location in the wiki
+- **Responsive Design**: Works well on desktop and mobile
