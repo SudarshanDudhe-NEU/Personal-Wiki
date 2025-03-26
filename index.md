@@ -4,10 +4,10 @@ Welcome to my personal knowledge base!
 
 ## Categories
 
-- [Technology](./categories/technology.md)
-- [Books](./categories/books.md)
-- [Projects](./categories/projects.md)
-- [Notes](./categories/notes.md)
+- [Technology](./personal_wiki/categories/technology.md)
+- [Books](./personal_wiki/categories/books.md)
+- [Projects](./personal_wiki/categories/projects.md)
+- [Notes](./personal_wiki/categories/notes.md)
 
 ## Recent Updates
 

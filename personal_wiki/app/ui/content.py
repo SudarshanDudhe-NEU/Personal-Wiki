@@ -1,17 +1,19 @@
 import streamlit as st
 import os
-from pathlib import Path
 import datetime
+import re
+from pathlib import Path
 from personal_wiki.app.utils.markdown import md_to_html, process_images, process_links, clean_code_blocks, extract_title
 from personal_wiki.app.utils.file import read_md_file
 
 def handle_file_selection():
     """Handle file selection via URL parameters or defaults"""
     # Parameter-based navigation
-    file_param = st.query_params.get("file")
+    query_params = st.experimental_get_query_params()
+    file_param = query_params.get("file")
 
-    if file_param and os.path.exists(file_param):
-        st.session_state.selected_file = file_param
+    if file_param and os.path.exists(file_param[0]):
+        st.session_state.selected_file = file_param[0]
     # Default to index.md if no file is selected
     elif not hasattr(st.session_state, "selected_file") or not os.path.exists(
         st.session_state.selected_file
@@ -19,13 +21,13 @@ def handle_file_selection():
         st.session_state.selected_file = "index.md"
         # Update the URL to reflect the default selection
         if not file_param:
-            st.query_params["file"] = "index.md"
+            st.experimental_set_query_params(file="index.md")
 
     # Check if the selected file exists
     if not os.path.exists(st.session_state.selected_file):
         st.error(f"File not found: {st.session_state.selected_file}")
         st.session_state.selected_file = "index.md"
-        st.query_params["file"] = "index.md"
+        st.experimental_set_query_params(file="index.md")
 
     return st.session_state.selected_file
 
@@ -57,17 +59,65 @@ def create_breadcrumbs(selected_file_path):
 def display_content_tabs(md_content, selected_file_path):
     """Display content in tabs (rendered and source)"""
     tab1, tab2 = st.tabs(["Rendered View", "Source"])
-
+    
     with tab1:
+        # Extract and store code blocks
+        code_blocks = []
+        content_parts = []
+        
+        # Match fenced code blocks with language specifier
+        pattern = r"```([a-zA-Z0-9_+-]*)\n(.*?)```"
+        
+        # Process the markdown content
+        last_end = 0
+        for match in re.finditer(pattern, md_content, re.DOTALL):
+            # Add text before this code block
+            if match.start() > last_end:
+                content_parts.append(md_content[last_end:match.start()])
+                
+            # Add a placeholder for the code block
+            lang = match.group(1).strip()
+            code = match.group(2)
+            code_blocks.append((lang, code))
+            content_parts.append(f"CODE_BLOCK_{len(code_blocks) - 1}")
+            
+            last_end = match.end()
+        
+        # Add any remaining content
+        if last_end < len(md_content):
+            content_parts.append(md_content[last_end:])
+            
+        # Join all non-code parts
+        processed_md = "".join(content_parts)
+        
         # Convert to HTML and process links/images
-        html_content = md_to_html(md_content)
+        html_content = md_to_html(processed_md)
         html_content = process_images(html_content, selected_file_path)
         html_content = process_links(html_content, selected_file_path)
-        html_content = clean_code_blocks(html_content)
-
-        # Display the rendered content
-        st.markdown(html_content, unsafe_allow_html=True)
-
+        
+        # Split by code block placeholders
+        html_parts = html_content.split("CODE_BLOCK_")
+        
+        # Display first part
+        if html_parts[0].strip():
+            st.markdown(html_parts[0], unsafe_allow_html=True)
+            
+        # Display each code block followed by subsequent content
+        for i, part in enumerate(html_parts[1:], 0):
+            # Find the block number
+            block_num = i
+            
+            # Display the code block using Streamlit's code element
+            lang, code = code_blocks[block_num]
+            st.code(code, language=lang if lang else None)
+            
+            # Find where the actual content starts
+            content_start = part.find(">") + 1 if ">" in part else 0
+            
+            # Display the rest of this section if any
+            if part[content_start:].strip():
+                st.markdown(part[content_start:], unsafe_allow_html=True)
+    
     with tab2:
         # Display the raw markdown
         st.code(md_content, language="markdown")
@@ -84,16 +134,16 @@ def display_content(selected_file_path):
     """Display the main content area with the selected markdown file"""
     # Read and process the selected file
     md_content = read_md_file(selected_file_path)
-
+    
     # Extract and display the title
     title = extract_title(md_content)
     st.title(title)
-
+    
     # Create breadcrumbs
     create_breadcrumbs(selected_file_path)
-
+    
     # Display file metadata
     display_file_metadata(selected_file_path)
-
+    
     # Display content tabs
     display_content_tabs(md_content, selected_file_path)

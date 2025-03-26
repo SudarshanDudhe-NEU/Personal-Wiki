@@ -1,13 +1,15 @@
 import streamlit as st
-from personal_wiki.app.utils.file import get_category_from_path
-from personal_wiki.app.ui.css import apply_sidebar_css
-from personal_wiki.app.ui.theme import show_theme_selector
+from personal_wiki.app.utils.file import get_md_files
+from personal_wiki.app.utils.markdown import md_to_html, process_images, process_links
+import os
+import re
 
 def create_sidebar_navigation(md_files):
     """Create the sidebar navigation from the wiki structure with enhanced design"""
     # Apply custom CSS for sidebar enhancements
+    from personal_wiki.app.ui.css import apply_sidebar_css
     apply_sidebar_css()
-
+    
     # Header section with logo and title
     with st.sidebar.container():
         col1, col2 = st.sidebar.columns([1, 3])
@@ -19,60 +21,37 @@ def create_sidebar_navigation(md_files):
     st.sidebar.divider()
     
     # Add theme selector to the sidebar
+    from personal_wiki.app.ui.theme import show_theme_selector
     show_theme_selector()
     
     # Search box for filtering content
     search_term = st.sidebar.text_input("🔍 Search wiki", key="search_wiki")
-
-    # Home/index button with hover effect
-    home_container = st.sidebar.container()
-    home_container.markdown(
-        """
-        <div class="nav-button home-button" onclick="homeClick()">
-            <div class="nav-icon">📄</div>
-            <div class="nav-label">Home</div>
-        </div>
-        <script>
-            function homeClick() {
-                window.location.search = '?file=index.md';
-            }
-        </script>
-        """,
-        unsafe_allow_html=True,
-    )
-
-    # Detect active section based on current file
+    if search_term:
+        from personal_wiki.app.utils.search import search_wiki_content
+        search_results = search_wiki_content(search_term, md_files)
+        if search_results:
+            st.sidebar.markdown("### Search Results")
+            for result in search_results:
+                if st.sidebar.button(f"📝 {result['title']}", key=f"search_{result['path']}"):
+                    st.session_state.selected_file = result['path']
+                    st.experimental_set_query_params(file=result['path'])
+                    st.rerun()
+    
+    # Home/index button
+    if st.sidebar.button("📄 Home", key="home_button", use_container_width=True):
+        st.session_state.selected_file = "index.md"
+        st.experimental_set_query_params(file="index.md")
+        st.rerun()
+    
+    # Categories in sidebar with active state highlighting
     current_file = st.session_state.get("selected_file", "")
+    from personal_wiki.app.utils.file import get_category_from_path
     current_category = get_category_from_path(current_file)
-
-    # Favorites section (pinned pages)
-    with st.sidebar.expander("⭐ Favorites", expanded=False):
-        st.markdown(
-            """
-            <div class="sidebar-note">Pin your favorite pages here</div>
-            """,
-            unsafe_allow_html=True,
-        )
-        # Placeholder for favorites - this would be populated from user settings
-
-    st.sidebar.divider()
-
-    # Categories in sidebar - enhanced with active state highlighting
+    
     for category_name, category_data in md_files.items():
         is_active = category_name == current_category
         render_category_section(category_name, category_data, is_active)
 
-    # Mobile responsiveness notice
-    st.sidebar.markdown(
-        "<div class='mobile-notice'>Swipe right for content →</div>",
-        unsafe_allow_html=True,
-    )
-
-    # Footer with app info
-    st.sidebar.divider()
-    st.sidebar.markdown(
-        "<div class='sidebar-footer'>Wiki Viewer v1.0</div>", unsafe_allow_html=True
-    )
 
 def render_category_section(category_name, category_data, is_active=False):
     """Render a category section in the sidebar with enhanced styling"""
@@ -89,11 +68,11 @@ def render_category_section(category_name, category_data, is_active=False):
             use_container_width=True,
         ):
             st.session_state.selected_file = category_data["path"]
-            st.query_params["file"] = category_data["path"]
+            st.experimental_set_query_params(file=category_data["path"])
             st.rerun()
 
         # Files directly in the category
-        if category_data["files"]:
+        if "files" in category_data and category_data["files"]:
             render_file_list(category_name, category_data["files"])
         else:
             st.markdown(
@@ -115,21 +94,16 @@ def render_file_list(category_name, files):
         # Check if this file is the active one
         is_active = file_path == current_file
         active_class = "active-file" if is_active else ""
-
         title_display = file_name.replace("-", " ").title()
-
-        # Create a container for the file item
-        file_container = st.container()
-
-        # Use markdown for styling (better than buttons for this UI style)
-        file_container.markdown(
-            f"""
-            <div class="file-item {active_class}" onclick="window.location.search='?file={file_path}'">
-                📝 {title_display}
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
+        
+        # Use a button instead of JavaScript onclick
+        if st.button(f"📝 {title_display}", 
+                  key=f"file_{category_name}_{file_name}", 
+                  use_container_width=True,
+                  type="secondary" if is_active else "primary"):
+            st.session_state.selected_file = file_path
+            st.experimental_set_query_params(file=file_path)
+            st.rerun()
 
 
 def render_subcategories(category_name, subcategories):
@@ -151,15 +125,12 @@ def render_subcategories(category_name, subcategories):
 
         # Subcategory index if it exists
         if "index" in subcategory_data:
-            index_container = st.container()
-            index_container.markdown(
-                f"""
-                <div class="file-item" onclick="window.location.search='?file={subcategory_data["index"]}'">
-                    📄 {subcat_display} Index
-                </div>
-                """,
-                unsafe_allow_html=True,
-            )
+            if st.button(f"📄 {subcat_display} Index", 
+                      key=f"subcat_idx_{category_name}_{subcategory_name}",
+                      use_container_width=True):
+                st.session_state.selected_file = subcategory_data["index"]
+                st.experimental_set_query_params(file=subcategory_data["index"])
+                st.rerun()
 
         # Files in the subcategory
         render_subcategory_files(category_name, subcategory_name, subcategory_data)
@@ -173,17 +144,26 @@ def render_subcategory_files(category_name, subcategory_name, subcategory_data):
         # Check if this file is the active one
         is_active = subfile_path == current_file
         active_class = "active-file" if is_active else ""
-
         subtitle_display = subfile_name.replace("-", " ").title()
+        
+        # Use Streamlit buttons for better compatibility
+        if st.button(f"📝 {subtitle_display}", 
+                  key=f"subfile_{category_name}_{subcategory_name}_{subfile_name}",
+                  use_container_width=True,
+                  type="secondary" if is_active else "primary"):
+            st.session_state.selected_file = subfile_path
+            st.experimental_set_query_params(file=subfile_path)
+            st.rerun()
 
-        # Use container and markdown for consistent styling
-        file_container = st.container()
-        file_container.markdown(
-            f"""
-            <div class="file-item {active_class}" style="margin-left: 8px;" 
-                onclick="window.location.search='?file={subfile_path}'">
-                📝 {subtitle_display}
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
+
+def handle_markdown_display(md_content, selected_file_path):
+    """Process and display markdown content with proper code block handling"""
+    # Convert to HTML first
+    html_content = md_to_html(md_content)
+    
+    # Process images and links
+    html_content = process_images(html_content, selected_file_path)
+    html_content = process_links(html_content, selected_file_path)
+    
+    # Final rendering
+    st.markdown(html_content, unsafe_allow_html=True)

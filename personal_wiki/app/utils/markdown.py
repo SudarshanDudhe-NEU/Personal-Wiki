@@ -43,21 +43,26 @@ def process_links(html_content, current_file):
     """Process internal links to make them work in the app"""
     soup = BeautifulSoup(html_content, 'html.parser')
     
-    # Fix for code blocks
+    # Fix for code blocks - ensure they're properly displayed
     for pre in soup.find_all('pre'):
+        # For each pre tag (which contains code blocks)
         if pre.code:
+            # Get the text content directly without processing
             code_text = pre.code.get_text()
+            # Create a new code element with the original text
             new_code = soup.new_tag('code')
             new_code.string = code_text
+            # Replace the old code with the new one
             pre.code.replace_with(new_code)
     
     # Process links
     for link in soup.find_all('a'):
         href = link.get('href', '')
         if href.startswith('./'):
+            # This is a relative link to another wiki file
             target_path = os.path.normpath(os.path.join(os.path.dirname(current_file), href[2:]))
             link['href'] = f"?file={target_path}"
-            link['target'] = "_self"
+            link['target'] = "_self"  # Ensure the link stays within the app
     
     return str(soup)
 
