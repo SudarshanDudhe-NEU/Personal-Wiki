@@ -197,8 +197,73 @@ This wiki includes a Streamlit application for a beautiful, interactive visualiz
 
 ### Features
 
-- **Interactive Navigation**: Browse through categories and files using the sidebar
+- **Interactive Navigation**: Browse through categories and files using the enhanced sidebar
 - **Beautiful Rendering**: Clean, styled display of your Markdown content
 - **Source View**: Toggle between rendered view and source markdown
 - **Breadcrumb Navigation**: See your current location in the wiki
-- **Responsive Design**: Works well on desktop and mobile
+- **Responsive Design**: Works well on desktop and mobile devices
+- **Active State Highlighting**: Clear visual indicators for current category and page
+- **Search Functionality**: Quickly find content across your wiki
+- **Favorites Section**: Pin frequently accessed pages for quick access
+- **Code Syntax Highlighting**: Beautiful display of code blocks with language detection
+
+### Advanced Features
+
+- **Collapsible Categories**: Expandable/collapsible sections for better organization
+- **Mobile-Optimized Interface**: Swipe gestures and touch-friendly controls
+- **Image Support**: Embedded images are properly displayed in the rendered view
+- **Table Formatting**: Clean display of markdown tables
+- **URL Sharing**: Direct links to specific pages can be shared or bookmarked
+- **History Navigation**: Works with browser back/forward buttons
+
+### Customizing the Theme
+
+The Streamlit wiki viewer supports multiple themes:
+
+1. **Built-in Themes**:
+   - Choose from Light, Dark, Forest, Oceanic, and Vintage themes
+   - Use the Theme Settings expander in the sidebar
+
+2. **Custom Themes**:
+   - Edit `.streamlit/config.toml` directly to create custom themes
+   - Add your own color schemes and font selections
+
+Example theme configuration:
+
+```toml
+[theme]
+primaryColor = "#0068c9"        # Main accent color
+backgroundColor = "#ffffff"     # Main content background
+secondaryBackgroundColor = "#f0f2f6"  # Sidebar background
+textColor = "#31333F"           # Text color
+font = "sans serif"             # Font family
+```
+
+Available font options: "sans serif", "serif", or "monospace"
+
+### Customization
+
+You can customize the appearance of your wiki viewer by modifying the CSS in `streamlit_css_utils.py`. Some options include:
+
+- Changing the color scheme
+- Adjusting font sizes and families
+- Modifying spacing and layout parameters
+- Creating custom themes for different contexts
+
+### Example Usage Scenarios
+
+1. **Personal Knowledge Base**: 
+   - Keep all your notes organized and accessible from any device
+   - Search across all your content to find information quickly
+
+2. **Project Documentation**:
+   - Share comprehensive documentation with team members
+   - Provide a professional interface for technical documentation
+
+3. **Learning Resource**:
+   - Create a structured collection of study materials
+   - Easily navigate between related concepts
+
+4. **Research Collection**:
+   - Organize research findings in a browsable format
+   - Link related concepts and discoveries together

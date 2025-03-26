@@ -1,10 +1,8 @@
 import streamlit as st
 
-
-# Custom CSS to make the wiki look nicer
 def local_css():
-    st.markdown(
-        """
+    """Apply custom CSS for the main content area"""
+    st.markdown("""
     <style>
         .main {
             padding: 0rem 1rem;
@@ -51,23 +49,11 @@ def local_css():
             background-color: #e0e2e6 !important;
             border-bottom: 3px solid #0068c9 !important;
         }
-        .sidebar-category {
-            margin-left: 10px;
-        }
-        .sidebar-file {
-            margin-left: 20px;
-        }
-        .sidebar-subcategory {
-            margin-left: 30px;
-        }
     </style>
-    """,
-        unsafe_allow_html=True,
-    )
-
+    """, unsafe_allow_html=True)
 
 def apply_sidebar_css():
-    """Apply custom CSS for improved sidebar appearance"""
+    """Apply custom CSS for sidebar enhancements"""
     st.markdown("""
     <style>
         /* Sidebar header styling */
