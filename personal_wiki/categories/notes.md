@@ -4,8 +4,7 @@ This category contains miscellaneous notes, thoughts, and snippets.
 
 ## Articles
 
-- [Research Methods](./notes/general-research/tech-job-growth-in-2025.md)
-- [ff](./notes/general-research/first-entry.md)
+- [Tech Job Growth in 2025](./notes/general-research/tech-job-growth-in-2025.md)
 - [Best countries it employees startup founders 2025](./notes/general-research/best-countries-it-employees-startup-founders-2025.md)
 
 ## Subcategories
