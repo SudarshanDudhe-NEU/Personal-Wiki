@@ -10,5 +10,5 @@ Welcome to my personal knowledge base!
 - [Notes](./personal_wiki/categories/notes.md)
 
 ## Recent Updates
-
+- 2025-04-02: [Best Countries It Employees Startup Founders 2025](personal_wiki/categories/notes/general-research/best-countries-it-employees-startup-founders-2025.md)- 2025-04-02: [first entry](personal_wiki/categories/notes/general-research/first-entry.md)
 - Added initial wiki structure (March 25, 2025)
