@@ -1,5 +1,3 @@
-# first entry
-
 Created: 2025-04-02
 
 ## Overview
