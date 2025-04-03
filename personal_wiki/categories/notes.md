@@ -9,7 +9,7 @@ This category contains miscellaneous notes, thoughts, and snippets.
 
 ## Subcategories
 
-- [General Research](notes/general-research.md)- [general research](notes/general-research.md)
+- [General Research](notes/general-research/index.md)
 - [Meeting Notes](./notes/meetings/index.md)
 - [Research](./notes/research/index.md)
 - [Ideas](./notes/ideas/index.md)
