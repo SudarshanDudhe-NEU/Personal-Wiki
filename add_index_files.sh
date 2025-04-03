@@ -1,16 +1,21 @@
 #!/bin/bash
 
 # add_index_files.sh - Script to add index.md files to empty folders
-# Usage: ./add_index_files.sh
+# Usage: ./add_index_files.sh [--dry-run]
 
 set -e
 
 WIKI_ROOT="$(pwd)"
 CATEGORIES_DIR="$WIKI_ROOT/personal_wiki/categories"
 
+DRY_RUN=false
+if [[ "$1" == "--dry-run" ]]; then
+    DRY_RUN=true
+fi
+
 # Function to convert kebab-case or snake_case to Title Case
 to_title_case() {
-    local name=$(echo "$1" | tr '-_' '  ')
+    local name=$(echo "$1" | sed 's/[-_]/ /g') # Replace '-' and '_' with spaces
     local result=""
     for word in $name; do
         first_char=$(echo "${word:0:1}" | tr '[:lower:]' '[:upper:]')
@@ -25,6 +30,11 @@ create_index_file() {
     local dir="$1"
     local index_file="$dir/index.md"
     
+    if [[ "$DRY_RUN" == true ]]; then
+        echo "[DRY RUN] Would create index.md in $dir"
+        return 0
+    fi
+
     # Skip if index.md already exists
     if [[ -f "$index_file" ]]; then
         echo "Index file already exists in $dir"
@@ -130,7 +140,7 @@ EOF
 # Process all directories
 echo "Searching for directories without proper index.md files..."
 
-find "$CATEGORIES_DIR" -type d | while read -r dir; do
+find "$CATEGORIES_DIR" -type d -print0 | while IFS= read -r -d '' dir; do
     # Skip the root categories directory
     if [[ "$dir" == "$CATEGORIES_DIR" ]]; then
         continue
