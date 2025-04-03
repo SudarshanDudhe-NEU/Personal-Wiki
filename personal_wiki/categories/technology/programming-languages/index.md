@@ -1,6 +1,4 @@
-#
-
-Documentation and resources related to in the category.
+# Documentation and resources related to in the category.
 
 ## Overview
 
