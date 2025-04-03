@@ -1,6 +1,4 @@
-# 
-
-Documentation and resources related to  in the  category.
+#Documentation and resources related to in the category.
 
 ## Overview
 
@@ -8,9 +6,8 @@ This section contains information, tutorials, and references about .
 
 ## Pages
 
-*No pages yet. Add content using the `add_wiki.sh` script.*
-
+_No pages yet. Add content using the `add_wiki.sh` script._
 
 ## Subcategories
 
-*No subcategories yet.*
+_No subcategories yet._
